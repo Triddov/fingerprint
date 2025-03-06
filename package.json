@@ -4,7 +4,7 @@
   "description": "",
   "main": "serv.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node serv.js"
   },
   "keywords": [],
   "author": "",
