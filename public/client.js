@@ -1,6 +1,5 @@
 (function() {
     function getData() {
-        // Функция для получения IP-адреса с таймаутом
         function getIP() {
             const timeout = 6000;
             const controller = new AbortController();
@@ -12,17 +11,42 @@
                 .then(response => response.json())
                 .then(data => {
                     clearTimeout(timeoutId);
-                    return data.ip;
+                    return fetch(`https://ipinfo.io/${data.ip}/json`);
+                })
+                .then(response => response.json())
+                .then(info => {
+                    return {
+                        ipAddress: info.ip,
+                        city: info.city,
+                        country: info.country,
+                        provider: info.org
+                    };
                 })
                 .catch(err => {
                     clearTimeout(timeoutId);
-                    return null;
+                    return { ipAddress: null, city: null, country: null, provider: null };
                 });
         }
 
-        return getIP().then(ip => {
+        function getGraphicsInfo() {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+            if (gl) {
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                    const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                    const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                    return { vendor, renderer };
+                }
+            }
+            return { vendor: 'unknown', renderer: 'unknown' };
+        }
+
+        return getIP().then(ipData => {
+            const graphicsInfo = getGraphicsInfo();
             return {
-                ipAddress: ip,
+                ...ipData,
                 userAgent: navigator.userAgent,
                 language: navigator.language,
                 languages: navigator.languages,
@@ -52,26 +76,24 @@
                     });
                     return detectedFonts;
                 })(),
-                geoLocation: (function() {
-                    return new Promise((resolve, reject) => {
-                        if (navigator.geolocation) {
-                            navigator.geolocation.getCurrentPosition(position => {
-                                resolve({
-                                    latitude: position.coords.latitude,
-                                    longitude: position.coords.longitude
-                                });
-                            }, reject);
-                        } else {
-                            resolve({ latitude: null, longitude: null });
-                        }
-                    });
-                })(),
+                geoLocation: new Promise((resolve, reject) => {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(position => {
+                            resolve({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude
+                            });
+                        }, reject);
+                    } else {
+                        resolve({ latitude: null, longitude: null });
+                    }
+                }),
                 connectionType: navigator.connection ? navigator.connection.effectiveType : 'unknown',
                 connectionDownlink: navigator.connection ? navigator.connection.downlink : 'unknown',
                 maxTouchPoints: navigator.maxTouchPoints,
                 mediaDevices: navigator.mediaDevices ? 'Available' : 'Not available',
-                deviceMemory: navigator.deviceMemory || 'unknown',
-                connection: navigator.connection ? navigator.connection.type : 'unknown'
+                connection: navigator.connection ? navigator.connection.type : 'unknown',
+                graphics: graphicsInfo
             };
         });
     }
