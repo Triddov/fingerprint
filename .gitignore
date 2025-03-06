@@ -3,7 +3,9 @@ package-lock.json
 .env
 .dockerignore
 
-*.logs
+logs/
 npm-debug.log*
 
 .idea/
+
+TODO
