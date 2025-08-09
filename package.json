@@ -1,16 +1,26 @@
 {
   "name": "fingerprint",
-  "version": "1.0.0",
-  "description": "",
-  "main": "serv.js",
+  "version": "1.2.0",
+  "description": "fingerprints scripts",
+  "type": "module",
+  "main": "src/serv.js",
   "scripts": {
-    "start": "node serv.js"
+    "start:dev": "HTTP_PORT=3001 nodemon src/serv.js",
+    "start:prod": "node src/serv.js",
+    "build": "webpack",
+    "esbuild": "esbuild src/client/index.js --bundle --minify --outfile=public/bundle.js --platform=browser"
   },
   "keywords": [],
-  "author": "",
+  "author": "triddov",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "terser-webpack-plugin": "^5.3.14",
+    "webpack": "^5.101.0",
+    "webpack-cli": "^6.0.1"
   }
 }

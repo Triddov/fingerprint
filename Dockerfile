@@ -1,17 +1,26 @@
-FROM node:alpine
+FROM node:18-alpine AS builder
 
-WORKDIR usr/src/app
+WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm ci
 
 COPY . .
 
-EXPOSE 3001
 
-ENV LOGFILE_PATH=./logs/fingerprints.log
+FROM node:18-alpine
 
-ENV HASHFILE_PATH=./logs/hashes.json
+WORKDIR /app
 
-CMD ["npm", "start"]
+COPY --from=builder /app .
+
+COPY init.sh ./init.sh
+
+RUN chmod +x ./init.sh
+
+ENTRYPOINT ["./init.sh"]
+
+ENV HTTP_PORT=3001
+
+CMD ["npm", "run", "start:prod"]
